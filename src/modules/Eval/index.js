@@ -7,7 +7,7 @@ function transformOutput(output) {
 
 	switch(type) {
 		case 'string':
-			return '```js\n"' + value + '"```'
+			return "```js\n'" + value.replace(/'/g, "\\'") + "```"
 		case 'undefined':
 			return '```apache\nundefined```'
 		case 'object':
