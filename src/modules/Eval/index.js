@@ -10,6 +10,7 @@ function transformOutput(output) {
 			return '```javascript\n"' + value + '"```'
 		case 'undefined':
 			return '```apache\nundefined```'
+		case 'object':
 		case 'function':
 			return '```' + Object.values(properties).map(({ key, value }) => `${key} = ${value.value || value.type}`).join("\n") + '```'
 		default:
@@ -26,12 +27,17 @@ export default class Eval {
 	async eval({ channel }, lang, code) {
 		if (lang === 'javascript' || lang === 'js') {
 			const outputs = await runKitEval(code)
-			const embed = new RichEmbed()
-				.setTitle(`Eval javascript with RunKit`)
-				.setDescription(
-					outputs.map(transformOutput).join('\n').slice(0, 2048)
-				)
-			channel.send({ embed })
+			if (outputs) {
+				const embed = new RichEmbed()
+					.setTitle(`Eval javascript with RunKit`)
+					.setDescription(
+						outputs.map(transformOutput).join('\n').slice(0, 2048)
+					)
+				channel.send({ embed })
+				console.log(outputs)
+			} else {
+				channel.send("Error could not evaluate code")
+			}
 		} else {
 			const found = Object.keys(await this.tioLanguages).filter(e => e.startsWith(lang))[0]
 			const results = await tioEval(found, code)

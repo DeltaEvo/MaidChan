@@ -21,24 +21,38 @@ function sha1(value) {
 function transformAst(ast, code) {
 	delete ast.program.sourceType
 	delete ast.program.interpreter
-	for (const node of ast.program.body) {
-		switch (node.type) {
-			case 'VariableDeclaration':
-				const { declarations: [declaration] } = node
-				node.kind = code.substring(node.start, declaration.start).trim()
-				break;
-			case 'FunctionDeclaration':
-				// Key order
-				const { type, id, generator, ...rest } = node;
-				Object.keys(node).forEach(key => delete node[key])
-				node.type = type
-				node.id = id
-				node.generator = generator
-				node.expression = false
-				Object.assign(node, rest)
-				break;
+	traverse(ast, {
+		enter({ node }) {
+			switch (node.type) {
+				case 'VariableDeclaration':
+					const { declarations: [declaration] } = node
+					node.kind = code.substring(node.start, declaration.start).trim()
+					break;
+				case 'ArrowFunctionExpression':
+				case 'FunctionDeclaration':
+					// Key order
+					var { type, id, generator, ...rest } = node;
+					Object.keys(node).forEach(key => delete node[key])
+					node.type = type
+					node.id = id
+					node.generator = generator
+					node.expression = code[rest.body.start] !== '{'
+					Object.assign(node, rest)
+					break;
+				case 'ObjectProperty':
+					// Key order
+					var { type, method, shorthand, computed, key, ...rest } = node;
+					Object.keys(node).forEach(key => delete node[key])
+					node.type = type
+					node.method = method
+					node.shorthand = shorthand
+					node.computed = computed
+					node.key = key
+					Object.assign(node, rest)
+					break;
+			}
 		}
-	}
+	})
 	return ast
 }
 
@@ -67,6 +81,9 @@ function extractFromAst(ast) {
 				packages.push(node.arguments[0].value)
 		}
 	})
+	hoistedVariableNames.sort()
+	hoistedTDZVariableNames.sort()
+	hoistedFunctionDeclarations.sort((a,b) => a.id.name.localeCompare(b.id.name))
 	return {
 		hoistedVariableNames,
 		hoistedTDZVariableNames,
@@ -85,6 +102,7 @@ export default function runKitEval(code) {
 
 		let started = false
 		let runIdentifier
+		let closeTimeout
 
 		const outputChecksums = new Set()
 		const values = []
@@ -156,16 +174,19 @@ export default function runKitEval(code) {
 							const { running } = contents;
 							started |= running;
 
-							if (started && outputChecksums.length === 0 && running === false) {
-								console.log("No output received closing connection")
-								resolve(false)
-								ws.close()
+							if (started && outputChecksums.size === 0 && !running) {
+								closeTimeout = setTimeout(() => {
+									resolve(false)
+									console.log("No output received closing")
+									ws.close()
+								}, 100);
 							}
 							break;
 						case `/embed/${runIdentifier}/outputs/${checksum}`:
 							if (!contents.items.length)
 								break;
 
+							closeTimeout && clearTimeout(closeTimeout)
 							contents.items.forEach(({ outputValueChecksum }) => outputChecksums.add(outputValueChecksum))
 							ws.send(JSON.stringify({ 
 								name: "href-registration",
