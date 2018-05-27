@@ -7,14 +7,14 @@ function transformOutput(output) {
 
 	switch(type) {
 		case 'string':
-			return '```javascript\n"' + value + '"```'
+			return '```js\n"' + value + '"```'
 		case 'undefined':
 			return '```apache\nundefined```'
 		case 'object':
 		case 'function':
-			return '```' + Object.values(properties).map(({ key, value }) => `${key} = ${value.value || value.type}`).join("\n") + '```'
+			return '```\n' + Object.values(properties).map(({ key, value }) => `${key} = ${value.value || value.type}`).join("\n") + '```'
 		default:
-			return '```javascript\n' + value + '```'
+			return '```js\n' + value + '```'
 	}
 }
 
