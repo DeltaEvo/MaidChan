@@ -3,7 +3,7 @@ import runKitEval from './runkit'
 import tioEval, { fetchTIOLanguages } from './tio'
 
 function transformOutput(output) {
-	const { type, value, properties } = output;
+	const { type, value, properties, className } = output;
 
 	switch(type) {
 		case 'string':
@@ -12,7 +12,7 @@ function transformOutput(output) {
 			return '```apache\nundefined```'
 		case 'object':
 		case 'function':
-			return '```\n' + Object.values(properties).map(({ key, value }) => `${key} = ${value.value || value.type}`).join("\n") + '```'
+			return '```\n' + className + ':\n' + Object.values(properties).map(({ key, value }) => `${key} = ${value.value || value.type}`).join("\n") + '```'
 		default:
 			return '```js\n' + value + '```'
 	}
