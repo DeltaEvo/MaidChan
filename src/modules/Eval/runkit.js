@@ -90,7 +90,10 @@ export default function runKitEval(code) {
 		const values = []
 		const time = new Date().getTime()
 		const evaluationUUID = uuid()
-		const ast = transformAst(parse(code), code)
+		const ast = transformAst(parse(code, {
+			allowAwaitOutsideFunction: true,
+			allowReturnOutsideFunction: true
+		}), code)
 		const { hoistedVariableNames, hoistedTDZVariableNames, hoistedFunctionDeclarations, packages } = extractFromAst(ast)
 
 		const meta = stringify({

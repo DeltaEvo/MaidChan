@@ -32,7 +32,6 @@ export default class Eval {
 					outputs.map(transformOutput).join('\n').slice(0, 2048)
 				)
 			channel.send({ embed })
-			console.log(outputs)
 		} else {
 			const found = Object.keys(await this.tioLanguages).filter(e => e.startsWith(lang))[0]
 			const results = await tioEval(found, code)
