@@ -7,12 +7,16 @@ function transformOutput(output) {
 
 	switch(type) {
 		case 'string':
-			return "```js\n'" + value.replace(/'/g, "\\'") + "```"
+			return "```js\n'" + value.replace(/'/g, "\\'") + "'\n```"
 		case 'undefined':
 			return '```apache\nundefined```'
 		case 'object':
 		case 'function':
-			return '```\n' + className + ':\n' + Object.values(properties).map(({ key, value }) => `${key} = ${value.value || value.type}`).join("\n") + '```'
+			const props = Object.values(properties)
+			if (props.length)
+				return '```js\n' + className + ' {\n'+ props.map(({ key, value }) => `\t${key}: ${value.value || `[${value.type}]`}`).join(",\n") + '\n}```'
+			else
+				return '```\n' + className + ' {}\n```'
 		default:
 			return '```js\n' + value + '```'
 	}
@@ -31,10 +35,9 @@ export default class Eval {
 				const embed = new RichEmbed()
 					.setTitle(`Eval javascript with RunKit`)
 					.setDescription(
-						outputs.map(transformOutput).join('\n').slice(0, 2048)
+						outputs.map(({ value, type }) => type + ':\n' + transformOutput(value)).join('\n').slice(0, 2048)
 					)
 				channel.send({ embed })
-				console.log(outputs)
 			} else {
 				channel.send("Error could not evaluate code")
 			}

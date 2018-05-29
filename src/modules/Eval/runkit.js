@@ -104,8 +104,8 @@ export default function runKitEval(code) {
 		let runIdentifier
 		let closeTimeout
 
-		const outputChecksums = new Set()
-		const values = []
+		const outputChecksums = new Map()
+		const outputs = []
 		const time = new Date().getTime()
 		const evaluationUUID = uuid()
 		const ast = transformAst(parse(code, {
@@ -187,19 +187,23 @@ export default function runKitEval(code) {
 								break;
 
 							closeTimeout && clearTimeout(closeTimeout)
-							contents.items.forEach(({ outputValueChecksum }) => outputChecksums.add(outputValueChecksum))
+							contents.items.forEach(({ outputValueChecksum, type }) => outputChecksums.set(outputValueChecksum, type ))
 							ws.send(JSON.stringify({ 
 								name: "href-registration",
-								hrefs:  [...outputChecksums].map(c => ({ href: `/output-values/${c}`, preloaded: false }))
+								hrefs:  [...outputChecksums.keys()].map(c => ({ href: `/output-values/${c}`, preloaded: false }))
 							}))
 							break;
 					}
-					const sum = [...outputChecksums].findIndex(checksum => href === `/output-values/${checksum}`)
+					const sum = [...outputChecksums.keys()].findIndex(checksum => href === `/output-values/${checksum}`)
 					if (sum !== -1) {
 							const value = deserialize(contents)
-							values[sum] = value
-							if (values.filter(e => e).length === outputChecksums.size) {
-								resolve(values)
+							const type = [...outputChecksums.values()][sum]
+							outputs[sum] = {
+								value,
+								type
+							}
+							if (outputs.filter(e => e).length === outputChecksums.size) {
+								resolve(outputs)
 								ws.close()
 							}
 					}
