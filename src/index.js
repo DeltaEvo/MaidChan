@@ -1,9 +1,10 @@
 import Migi from '@popcorn.moe/migi'
 import * as modules from './modules'
 import { blue, green, magenta } from 'chalk'
+import { join } from 'path'
 
 const migi = new Migi({
-	root: __dirname
+	root: join(__dirname, '..')
 })
 
 Object.entries(modules).forEach(([name, Module]) => {

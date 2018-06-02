@@ -1,4 +1,4 @@
-import { command, RichEmbed } from '@popcorn.moe/migi'
+import { command, react, RichEmbed } from '@popcorn.moe/migi'
 import fetch from 'node-fetch'
 import cheerio from 'cheerio'
 
@@ -38,6 +38,7 @@ export default class HTTP {
 		})()
 	}
 	@command(/^http status(?: (cat|dog|wc))? (\d+)$/)
+	@react('👌')
 	async status({ channel }, type = 'cat', status) {
 		const statuses = await this.statuses
 		if (status in statuses) {

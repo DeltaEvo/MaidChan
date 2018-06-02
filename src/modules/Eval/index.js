@@ -1,4 +1,4 @@
-import { command, RichEmbed } from '@popcorn.moe/migi'
+import { command, react, RichEmbed } from '@popcorn.moe/migi'
 import runKitEval from './runkit'
 import tioEval, { fetchTIOLanguages } from './tio'
 
@@ -28,6 +28,7 @@ export default class Eval {
 	}
 
 	@command(/^eval\s*```([^\n]*)\n(.*)```$/s)
+	@react('👌')
 	async eval({ channel }, lang, code) {
 		if (lang === 'javascript' || lang === 'js') {
 			const outputs = await runKitEval(code)
@@ -55,6 +56,7 @@ export default class Eval {
 	}
 
 	@command(/^languages$/)
+	@react('👌')
 	async languages({ channel }) {
 		channel.send(Object.keys(await this.tioLanguages).join(', '))
 	}
