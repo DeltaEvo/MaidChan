@@ -48,7 +48,7 @@ export default class Eval {
 			const embed = new RichEmbed()
 				.setTitle(`Eval ${found} with TIO`)
 				.setDescription(
-					results.map(res => '```' + res.join('\n') + '```').join('\n').slice(0, 2048)
+					results.map(res => '```\n' + res.join('\n') + '\n```').join('\n').slice(0, 2048)
 				)
 
 			channel.send({ embed })
