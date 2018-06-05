@@ -177,7 +177,7 @@ export default function runKitEval(code) {
 							if (started && outputChecksums.size === 0 && !running) {
 								closeTimeout = setTimeout(() => {
 									resolve(false)
-									console.log("No output received closing")
+									//console.log("No output received closing")
 									ws.close()
 								}, 100);
 							}

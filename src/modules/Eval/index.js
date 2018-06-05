@@ -29,7 +29,7 @@ export default class Eval {
 
 	@command(/^eval\s*```([^\n]*)\n(.*)```$/s)
 	@react('👌')
-	async eval({ channel }, lang, code) {
+	async eval({ channel, client, author, guild }, lang, code) {
 		if (lang === 'javascript' || lang === 'js') {
 			const outputs = await runKitEval(code)
 			if (outputs) {
@@ -40,7 +40,10 @@ export default class Eval {
 					)
 				return void await channel.send({ embed })
 			} else {
-				channel.send("Error could not evaluate code with RunKit")
+				const { owner } = await client.application
+				const dm = await owner.createDM()
+				await dm.send(`[**RunKit Eval**] Error with code sent by ${author} in guild "${guild.name}"` + '```js\n' + code + '\n```\n')
+				channel.send("Error could not evaluate code with RunKit, dm sent to owner")
 				lang = 'javascript-node'
 			}
 		}

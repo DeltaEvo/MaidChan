@@ -14,8 +14,10 @@ Object.entries(modules).forEach(([name, Module]) => {
 
 migi.login(process.env.DISCORD_TOKEN).catch(e => console.error(e, 'Login error!'))
 
+
 migi.on('ready', () => {
 	console.log(magenta(`Ready ${green.bold('@' + migi.user.tag)}!`))
+	migi.application = migi.fetchApplication()
 	migi.user.setActivity("commands", { type: "LISTENING" })
 	migi.settings.prefix = [migi.settings.prefix, `${migi.user} `]
 })

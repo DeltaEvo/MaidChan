@@ -10,7 +10,7 @@ export default class About {
 	@command(/^about$/)
 	@react('👌')
 	async about({ client, channel }) {
-		const { name, id, owner, description, iconURL, botPublic } = await client.fetchApplication()
+		const { name, id, owner, description, iconURL, botPublic } = await client.application
 		const embed = new RichEmbed()
 			.setTitle(`About ${name}`)
 			.setDescription(description)
@@ -27,6 +27,6 @@ export default class About {
 			.addField('Sources', `[Click here](${fromUrl(repository.url).browse()})`, true)
 			.addField('Invite', `[Click here](https://discordapp.com/oauth2/authorize?client_id=${id}&scope=bot&permissions=3072)`, true)
 		
-		channel.send({ embed })
+		await channel.send({ embed })
 	}
 }
