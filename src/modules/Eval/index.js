@@ -3,7 +3,7 @@ import runKitEval from './runkit'
 import tioEval, { fetchTIOLanguages } from './tio'
 
 function transformOutput(output) {
-	const { type, value, properties, className } = output;
+	const { type, value, properties, className } = output
 
 	switch(type) {
 		case 'string':
@@ -38,26 +38,26 @@ export default class Eval {
 					.setDescription(
 						outputs.map(({ value, type }) => type + ':\n' + transformOutput(value)).join('\n').slice(0, 2048)
 					)
-				channel.send({ embed })
+				return void await channel.send({ embed })
 			} else {
-				channel.send("Error could not evaluate code")
+				channel.send("Error could not evaluate code with RunKit")
+				lang = 'javascript-node'
 			}
-		} else {
-			const found = Object.keys(await this.tioLanguages).filter(e => e.startsWith(lang))[0]
-			const results = await tioEval(found, code)
-			const embed = new RichEmbed()
-				.setTitle(`Eval ${found} with TIO`)
-				.setDescription(
-					results.map(res => '```\n' + res.join('\n') + '\n```').join('\n').slice(0, 2048)
-				)
-
-			channel.send({ embed })
 		}
+		const found = Object.keys(await this.tioLanguages).filter(e => e.startsWith(lang))[0]
+		const results = await tioEval(found, code)
+		const embed = new RichEmbed()
+			.setTitle(`Eval ${found} with TIO`)
+			.setDescription(
+				results.map(res => '```\n' + res.join('\n') + '\n```').join('\n').slice(0, 2048)
+			)
+
+		await channel.send({ embed })
 	}
 
 	@command(/^languages$/)
 	@react('👌')
 	async languages({ channel }) {
-		channel.send(Object.keys(await this.tioLanguages).join(', '))
+		await channel.send(Object.keys(await this.tioLanguages).join(', '))
 	}
 }
