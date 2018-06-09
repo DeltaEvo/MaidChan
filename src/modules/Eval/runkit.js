@@ -4,6 +4,8 @@ import { parse } from '@babel/parser';
 import traverse from "babel-traverse";
 import uuid from 'uuid/v4'
 import { createHash } from 'crypto'
+import fetch from 'node-fetch'
+import { rcompare as compare } from 'semver'
 
 function stringify(o) {
 	return JSON.stringify(o, (key, value) => {
@@ -29,6 +31,7 @@ function transformAst(ast, code) {
 					node.kind = code.substring(node.start, declaration.start).trim()
 					break;
 				case 'ArrowFunctionExpression':
+				case 'FunctionExpression':
 				case 'FunctionDeclaration':
 					// Key order
 					var { type, id, generator, ...rest } = node;
@@ -49,6 +52,11 @@ function transformAst(ast, code) {
 					node.computed = computed
 					node.key = key
 					Object.assign(node, rest)
+					break;
+				case 'AssignmentExpression':
+					// TODO:
+					// Example code: (a=_=>console.log(`(a=${a})()`))()
+					// Seems that runkit parse (a=${a}) as asignment and set parenStart at 20
 					break;
 			}
 		}
@@ -92,7 +100,16 @@ function extractFromAst(ast) {
 	}
 }
 
-export default function runKitEval(code) {
+export default async function runKitEval(code) {
+	const releaseInfos = await fetch('https://nodejs.org/download/release/index.json')
+		.then(res => res.json())
+
+	const nodeMajor = '8'
+
+	const nodeVersion = releaseInfos.map(({ version }) => version.slice(1))
+						.filter(v => v.startsWith(nodeMajor))
+						.sort((a, b) => compare(a, b))[0]
+
 	return new Promise((resolve, reject) => {
 		const ws = new WebSocket('wss://runkit.com/', {
 			headers: {
@@ -115,7 +132,7 @@ export default function runKitEval(code) {
 		const { hoistedVariableNames, hoistedTDZVariableNames, hoistedFunctionDeclarations, packages } = extractFromAst(ast)
 
 		const meta = stringify({
-			nodeVersion: "8.11.1",
+			nodeVersion,
 			nodeFlags: [],
 			program: ast.program,
 			evaluationUUID,
@@ -148,7 +165,7 @@ export default function runKitEval(code) {
 								name: "evaluate",
 								url: `/embed/${identifier}?access-key=${accessKey}`,
 								dependencies: packages.reduce((c,v) => (c[v] = time, c), {}),
-								nodeVersion: "8.x.x",
+								nodeVersion: `${nodeMajor}.x.x`,
 								environmentOverrides: [{ name: "RUNKIT_ENDPOINT_URL", value: `https://${identifier}.runkit.sh` }],
 								evaluationUUIDs: ["0"],
 								sources: [
