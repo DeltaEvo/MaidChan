@@ -38,6 +38,7 @@ export default class Eval {
 					.setDescription(
 						outputs.map(({ value, type }) => type + ':\n' + transformOutput(value)).join('\n').slice(0, 2048)
 					)
+					.setColor(0x2ECC71)
 				return void await channel.send({ embed })
 			} else {
 				const { owner } = await client.application
@@ -54,6 +55,7 @@ export default class Eval {
 			.setDescription(
 				results.map(res => '```\n' + res.join('\n') + '\n```').join('\n').slice(0, 2048)
 			)
+			.setColor(0xC0C0C0)
 
 		await channel.send({ embed })
 	}
